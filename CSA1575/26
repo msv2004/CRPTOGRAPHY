@@ -1,0 +1,22 @@
+#include <stdio.h>
+void encrypt() {
+    int i;  // Declare the loop variable here
+    printf("Encrypting...\n");
+    for (i = 0; i < 10; i++) {
+        // Example encryption operation
+        printf("Encrypted block %d\n", i + 1);
+    }
+}
+void decrypt() {
+    int i;  // Declare the loop variable here
+    printf("Decrypting...\n");
+    for (i = 0; i < 10; i++) {
+        // Example decryption operation
+        printf("Decrypted block %d\n", i + 1);
+    }
+}
+int main() {
+    encrypt();
+    decrypt();
+    return 0;
+}

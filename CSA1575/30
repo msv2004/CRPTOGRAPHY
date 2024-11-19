@@ -1,0 +1,43 @@
+#include <stdio.h>
+#include <string.h>
+#define BLOCK_SIZE 8  
+void xor_blocks(const unsigned char *block1, const unsigned char *block2, unsigned char *output, int block_size) {
+    for (int i = 0; i < block_size; i++) {
+        output[i] = block1[i] ^ block2[i];
+    }
+}
+void encrypt_block(const unsigned char *block, const unsigned char *key, unsigned char *output, int block_size) {
+    xor_blocks(block, key, output, block_size);
+}
+void cbc_mac_single_block(const unsigned char *message, const unsigned char *key, unsigned char *mac, int block_size) {
+    encrypt_block(message, key, mac, block_size);
+}
+
+int main() {
+    const int block_size = BLOCK_SIZE;  
+    unsigned char X[BLOCK_SIZE] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
+    unsigned char K[BLOCK_SIZE] = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF, 0x11, 0x22};
+    unsigned char T[BLOCK_SIZE]; 
+    cbc_mac_single_block(X, K, T, block_size);
+    printf("MAC for single-block message X: ");
+    for (int i = 0; i < block_size; i++) {
+        printf("%02X ", T[i]);
+    }
+    printf("\n");
+    unsigned char X_xor_T[BLOCK_SIZE];
+    xor_blocks(X, T, X_xor_T, block_size);
+    unsigned char two_block_message[2 * BLOCK_SIZE]; 
+    memcpy(two_block_message, X, block_size);
+    memcpy(two_block_message + block_size, X_xor_T, block_size);
+    unsigned char intermediate[BLOCK_SIZE];
+    unsigned char final_mac[BLOCK_SIZE];
+    encrypt_block(X, K, intermediate, block_size);
+    xor_blocks(X_xor_T, intermediate, final_mac, block_size);
+    printf("MAC for two-block message X || (X ? T): ");
+    for (int i = 0; i < block_size; i++) {
+        printf("%02X ", final_mac[i]);
+    }
+    printf("\n");
+
+    return 0;
+}

@@ -1,0 +1,49 @@
+#include <stdio.h>
+/* Function to compute (base^exp) % mod for encryption and decryption */
+int mod_exp(int base, int exp, int mod) {
+    int result = 1;
+    while (exp > 0) {
+        if (exp % 2 == 1) {
+            result = (result * base) % mod;
+        }
+        base = (base * base) % mod;
+        exp /= 2;
+    }
+    return result;
+}
+/* RSA encryption: C = M^e % n */
+int rsa_encrypt(int message, int e, int n) {
+    return mod_exp(message, e, n);
+}
+/* RSA decryption: M = C^d % n */
+int rsa_decrypt(int ciphertext, int d, int n) {
+    return mod_exp(ciphertext, d, n);
+}
+int main() {
+    /* Example RSA parameters (small values for demonstration purposes) */
+    int n = 55;  /* n = p * q where p and q are large primes; here, 55 = 5 * 11 */
+    int e = 3;   /* Public key exponent */
+    int d = 27;  /* Private key exponent (calculated from e and the totient of n) */
+    /* Plaintext message: "HELLO" encoded as numbers between 0 and 25 */
+    char message[] = "HELLO";
+    int message_as_numbers[] = {7, 4, 11, 11, 14}; /* H=7, E=4, L=11, L=11, O=14 */
+    int length = sizeof(message_as_numbers) / sizeof(message_as_numbers[0]);
+    int i;
+    printf("Original Message: %s\n", message);
+    /* Encrypting each letter */
+    int ciphertext[5];
+    printf("Encrypted Message: ");
+    for (i = 0; i < length; i++) {
+        ciphertext[i] = rsa_encrypt(message_as_numbers[i], e, n);
+        printf("%d ", ciphertext[i]);
+    }
+    printf("\n");
+    /* Decrypting each letter */
+    printf("Decrypted Message: ");
+    for (i = 0; i < length; i++) {
+        int decrypted = rsa_decrypt(ciphertext[i], d, n);
+        printf("%c", decrypted + 'A');
+    }
+    printf("\n");
+    return 0;
+}

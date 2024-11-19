@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+/* Sample large prime numbers and a simple hash function for demonstration */
+#define PRIME_Q 23    /* Smaller prime for demonstration (in actual DSA, this would be a large prime) */
+#define PRIME_P 47    /* Smaller prime for demonstration (in actual DSA, this would be a larger prime) */
+#define G 5           /* Generator (example value, usually derived from p and q) */
+#define PRIVATE_KEY 7 /* Bob's private key (example value) */
+/* Simple hash function (placeholder for actual message hashing) */
+unsigned int simple_hash(const char *message) {
+    unsigned int hash = 0;
+    int i;
+    for (i = 0; message[i] != '\0'; i++) {
+        hash = (hash + message[i]) % PRIME_Q; /* Simple modulo hash */
+    }
+    return hash;
+}
+/* Modular exponentiation for (base^exp) % mod */
+unsigned int mod_exp(unsigned int base, unsigned int exp, unsigned int mod) {
+    unsigned int result = 1;
+    while (exp > 0) {
+        if (exp % 2 == 1) {
+            result = (result * base) % mod;
+        }
+        base = (base * base) % mod;
+        exp /= 2;
+    }
+    return result;
+}
+/* DSA signature generation */
+void dsa_sign(const char *message, unsigned int *r, unsigned int *s) {
+    unsigned int k;
+    unsigned int hash = simple_hash(message);
+    /* Select a random k (in reality, k should be unique and random for each message) */
+    do {
+        k = rand() % (PRIME_Q - 1) + 1; /* 1 <= k < q */
+    } while (k == 0);
+    /* Calculate r = (g^k mod p) mod q */
+    *r = mod_exp(G, k, PRIME_P) % PRIME_Q;
+    /* Calculate s = k^-1 * (hash + private_key * r) mod q */
+    unsigned int k_inv = mod_exp(k, PRIME_Q - 2, PRIME_Q); /* Modular inverse of k */
+    *s = (k_inv * (hash + PRIVATE_KEY * (*r))) % PRIME_Q;
+}
+/* DSA signature verification */
+int dsa_verify(const char *message, unsigned int r, unsigned int s) {
+    unsigned int hash = simple_hash(message);
+    /* Calculate w = s^-1 mod q */
+    unsigned int w = mod_exp(s, PRIME_Q - 2, PRIME_Q); /* Modular inverse of s */
+    /* Calculate u1 = (hash * w) % q and u2 = (r * w) % q */
+    unsigned int u1 = (hash * w) % PRIME_Q;
+    unsigned int u2 = (r * w) % PRIME_Q;
+    /* Calculate v = ((g^u1 * y^u2) mod p) mod q */
+    unsigned int y = mod_exp(G, PRIVATE_KEY, PRIME_P); /* Public key y = g^private_key mod p */
+    unsigned int v = ((mod_exp(G, u1, PRIME_P) * mod_exp(y, u2, PRIME_P)) % PRIME_P) % PRIME_Q;
+    /* Signature is valid if v == r */
+    return (v == r);
+}
+int main() {
+    srand((unsigned int)time(NULL));
+    const char *message = "Hello, DSA!";
+    unsigned int r, s;
+    /* Generate DSA signature */
+    dsa_sign(message, &r, &s);
+    printf("Message: %s\n", message);
+    printf("DSA Signature: (r, s) = (%u, %u)\n", r, s);
+    /* Verify the DSA signature */
+    if (dsa_verify(message, r, s)) {
+        printf("Signature is valid.\n");
+    } else {
+        printf("Signature is invalid.\n");
+    }
+    /* Generate a new signature for the same message to demonstrate unique signatures */
+    unsigned int r2, s2;
+    dsa_sign(message, &r2, &s2);
+    printf("New DSA Signature for the same message: (r, s) = (%u, %u)\n", r2, s2);
+    return 0;
+}

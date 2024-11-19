@@ -1,0 +1,46 @@
+#include <stdio.h>
+#include <stdlib.h>
+#define LANE_SIZE 64   /* Each lane is 64 bits */
+#define MATRIX_SIZE 5  /* 5x5 matrix for SHA-3 */
+#define CAPACITY 576   /* Capacity portion in bits */
+#define RATE 1024      /* Rate portion in bits */
+/* Function to simulate filling lanes with nonzero bits */
+int all_nonzero_lanes(unsigned long state[MATRIX_SIZE][MATRIX_SIZE]) {
+    int i, j;
+    for (i = 0; i < MATRIX_SIZE; i++) {
+        for (j = 0; j < MATRIX_SIZE; j++) {
+            if (state[i][j] == 0) {
+                return 0;  /* Return 0 if any lane is zero */
+            }
+        }
+    }
+    return 1;  /* All lanes have nonzero bits */
+}
+int main() {
+    unsigned long state[MATRIX_SIZE][MATRIX_SIZE];
+    int i, j, rounds = 0;
+    /* Initialize the state matrix */
+    for (i = 0; i < MATRIX_SIZE; i++) {
+        for (j = 0; j < MATRIX_SIZE; j++) {
+            if ((i * MATRIX_SIZE + j) * LANE_SIZE < CAPACITY) {
+                state[i][j] = 0;  /* Initialize capacity lanes to zero */
+            } else {
+                state[i][j] = rand() % 0xFFFFFFFFFFFFFFFF + 1; /* Random nonzero bits for rate */
+            }
+        }
+    }
+    /* Process blocks until all lanes in the capacity portion have nonzero bits */
+    while (!all_nonzero_lanes(state)) {
+        /* Simulate random filling of nonzero bits */
+        for (i = 0; i < MATRIX_SIZE; i++) {
+            for (j = 0; j < MATRIX_SIZE; j++) {
+                if (state[i][j] == 0) {
+                    state[i][j] = rand() % 0xFFFFFFFFFFFFFFFF + 1; /* Fill zero lane with random nonzero */
+                }
+            }
+        }
+        rounds++;
+    }
+    printf("All lanes in the capacity portion have nonzero bits after %d rounds.\n", rounds);
+    return 0;
+}

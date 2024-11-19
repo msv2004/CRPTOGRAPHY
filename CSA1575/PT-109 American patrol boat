@@ -1,0 +1,38 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#define MATRIX_SIZE 5
+#define ALPHABET_SIZE 26
+// Function to remove non-alphabet characters and make the text uppercase
+void cleanText(char *text) {
+    int j = 0;
+    for (int i = 0; text[i] != '\0'; i++) {
+        if (isalpha(text[i])) {
+            text[j++] = toupper(text[i]);
+        }
+    }
+    text[j] = '\0'; // Null-terminate the cleaned text
+}
+// Function to create the Playfair matrix from a given keyword
+void createPlayfairMatrix(char *key, char matrix[MATRIX_SIZE][MATRIX_SIZE]) {
+    int used[ALPHABET_SIZE] = {0}; // Track used letters
+    int k = 0;
+    // Clean the key (remove non-alphabet characters and make uppercase)
+    cleanText(key);
+    // Fill the matrix with the letters of the key
+    for (int i = 0; key[i] != '\0'; i++) {
+        if (!used[key[i] - 'A']) {
+            matrix[k / MATRIX_SIZE][k % MATRIX_SIZE] = key[i];
+            used[key[i] - 'A'] = 1;
+            k++;
+        }
+    }
+    // Fill the rest of the matrix with the remaining letters of the alphabet
+    for (char c = 'A'; c <= 'Z'; c++) {
+        if (!used[c - 'A'] && c != 'J') { // J is usually omitted
+            matrix[k / MATRIX_SIZE][k % MATRIX_SIZE] = c;
+            used[c - 'A'] = 1;
+            k++;
+        }
+    }
+}

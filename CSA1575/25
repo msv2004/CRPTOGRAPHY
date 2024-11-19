@@ -1,0 +1,24 @@
+#include <stdio.h>
+int gcd(int a, int b) {
+    while (b != 0) {
+        int temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+int main() {
+    int n, M;
+    printf("Enter the RSA modulus (n): ");
+    scanf("%d", &n);
+    printf("Enter the plaintext block (M): ");
+    scanf("%d", &M);
+    int g = gcd(M, n);
+    if (g > 1) {
+        printf("The common factor between M and n is: %d\n", g);
+        printf("This is a prime factor of n (either p or q).\n");
+    } else {
+        printf("No common factor found between M and n.\n");
+    }
+    return 0;
+}

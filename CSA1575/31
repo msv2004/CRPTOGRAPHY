@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <string.h>
+#define BLOCK_SIZE_64 8     /* 64-bit block size in bytes */
+#define BLOCK_SIZE_128 16   /* 128-bit block size in bytes */
+/* Constants for Rb */
+const unsigned char Rb_64 = 0x1B;    /* For 64-bit block size */
+const unsigned char Rb_128 = 0x87;   /* For 128-bit block size */
+/* Function to simulate a block cipher encryption (e.g., AES, simplified here) */
+void encrypt_block(const unsigned char *input, unsigned char *output, int block_size) {
+    /* In actual implementation, this would call a block cipher like AES */
+    memcpy(output, input, block_size);  /* Simple identity for demonstration */
+}
+/* Function to perform left shift and XOR with Rb if needed */
+void left_shift_and_xor(unsigned char *key, int block_size, unsigned char Rb) {
+    int i;
+    unsigned char overflow = 0;
+    /* Left shift each byte */
+    for (i = block_size - 1; i >= 0; i--) {
+        unsigned char new_overflow = (key[i] & 0x80) ? 1 : 0;
+        key[i] = (key[i] << 1) | overflow;
+        overflow = new_overflow;
+    }
+    /* XOR with Rb if there was overflow */
+    if (overflow) {
+        key[block_size - 1] ^= Rb;
+    }
+}
+/* Function to generate subkeys K1 and K2 */
+void generate_cmac_subkeys(unsigned char *K1, unsigned char *K2, int block_size) {
+    unsigned char zero_block[BLOCK_SIZE_128] = {0};  /* Initialize all-zero block */
+    unsigned char L[BLOCK_SIZE_128];
+    unsigned char Rb = (block_size == BLOCK_SIZE_64) ? Rb_64 : Rb_128;
+    /* Step 1: Encrypt the zero block */
+    encrypt_block(zero_block, L, block_size);
+    /* Step 2: Generate K1 */
+    memcpy(K1, L, block_size);
+    left_shift_and_xor(K1, block_size, Rb);
+    /* Step 3: Generate K2 from K1 */
+    memcpy(K2, K1, block_size);
+    left_shift_and_xor(K2, block_size, Rb);
+}
+void print_hex(const unsigned char *data, int length) {
+    int i;
+    for (i = 0; i < length; i++) {
+        printf("%02X ", data[i]);
+    }
+    printf("\n");
+}
+int main() {
+    unsigned char K1[BLOCK_SIZE_128] = {0};
+    unsigned char K2[BLOCK_SIZE_128] = {0};
+    printf("Generating subkeys for 64-bit block size...\n");
+    generate_cmac_subkeys(K1, K2, BLOCK_SIZE_64);
+    printf("K1 (64-bit): ");
+    print_hex(K1, BLOCK_SIZE_64);
+    printf("K2 (64-bit): ");
+    print_hex(K2, BLOCK_SIZE_64);
+    printf("\nGenerating subkeys for 128-bit block size...\n");
+    generate_cmac_subkeys(K1, K2, BLOCK_SIZE_128);
+    printf("K1 (128-bit): ");
+    print_hex(K1, BLOCK_SIZE_128);
+    printf("K2 (128-bit): ");
+    print_hex(K2, BLOCK_SIZE_128);
+    return 0;
+}

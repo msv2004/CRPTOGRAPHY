@@ -1,0 +1,70 @@
+#include <stdio.h>
+// Function to compute the greatest common divisor using Euclidean algorithm
+int gcd(int a, int b) {
+    while (b != 0) {
+        int temp = b;
+        b = a % b;
+        a = temp;
+    }
+    return a;
+}
+// Function to compute the extended Euclidean algorithm to find the inverse
+int extended_euclidean(int a, int b, int *x, int *y) {
+    if (b == 0) {
+        *x = 1;
+        *y = 0;
+        return a;
+    }
+    int x1, y1;
+    int gcd = extended_euclidean(b, a % b, &x1, &y1);
+    *x = y1;
+    *y = x1 - (a / b) * y1;
+    return gcd;
+}
+// Function to find the multiplicative inverse of e modulo f(n)
+int mod_inverse(int e, int f_n) {
+    int x, y;
+    int gcd_value = extended_euclidean(e, f_n, &x, &y);
+    if (gcd_value != 1) {
+        // No inverse exists
+        return -1;
+    }
+    return (x % f_n + f_n) % f_n;  // Ensure the result is positive
+}
+// Function to factorize n and find p and q
+void find_p_and_q(int n, int *p, int *q) {
+    // Try trial division to factorize n
+    int i;
+    for (i = 2; i * i <= n; i++) {
+        if (n % i == 0) {
+            *p = i;
+            *q = n / i;
+            return;
+        }
+    }
+    *p = *q = -1;  // This should not happen if n is composite
+}
+int main() {
+    int n = 3599;
+    int e = 31;
+    int p, q, phi_n, d;
+    // Step 1: Find p and q (factorize n)
+    find_p_and_q(n, &p, &q);
+    if (p == -1 || q == -1) {
+        printf("Failed to factorize n.\n");
+        return 1;
+    }
+    // Step 2: Compute f(n) = (p - 1) * (q - 1)
+    phi_n = (p - 1) * (q - 1);
+    // Step 3: Compute the private key d, which is the modular inverse of e mod f(n)
+    d = mod_inverse(e, phi_n);
+    if (d == -1) {
+        printf("No modular inverse found. The value of e and f(n) might not be coprime.\n");
+        return 1;
+    }
+    // Output the results
+    printf("Public Key: (e = %d, n = %d)\n", e, n);
+    printf("Private Key: (d = %d, n = %d)\n", d, n);
+    printf("Factors of n: p = %d, q = %d\n", p, q);
+    return 0;
+}

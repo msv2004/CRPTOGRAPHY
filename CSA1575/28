@@ -1,0 +1,37 @@
+#include <stdio.h>
+/* Function to compute (base^exp) % mod */
+int mod_exp(int base, int exp, int mod) {
+    int result = 1;
+    base = base % mod;
+    while (exp > 0) {
+        if (exp % 2 == 1) {
+            result = (result * base) % mod;
+        }
+        exp = exp >> 1;
+        base = (base * base) % mod;
+    }
+    return result;
+}
+int main() {
+    /* Public values */
+    int a = 5;       /* Base a (publicly agreed) */
+    int q = 23;      /* Modulus q (publicly agreed) */
+    /* Private keys (selected by Alice and Bob) */
+    int xA = 6;      /* Alice's private key */
+    int xB = 15;     /* Bob's private key */
+    /* Generate the values to send */
+    int yA = mod_exp(a, xA, q);  /* Alice sends this to Bob: yA = a^xA mod q */
+    int yB = mod_exp(a, xB, q);  /* Bob sends this to Alice: yB = a^xB mod q */
+    /* Key agreement */
+    int keyAlice = mod_exp(yB, xA, q);  /* Alice computes key: (yB)^xA mod q */
+    int keyBob = mod_exp(yA, xB, q);    /* Bob computes key: (yA)^xB mod q */
+    printf("Alice's computed key: %d\n", keyAlice);
+    printf("Bob's computed key: %d\n", keyBob);
+    /* Verification */
+    if (keyAlice == keyBob) {
+        printf("Shared secret key agreed upon: %d\n", keyAlice);
+    } else {
+        printf("Keys do not match. Agreement failed.\n");
+    }
+    return 0;
+}
